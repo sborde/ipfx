@@ -1,7 +1,7 @@
 import os
-import glob
 import logging
 import pg8000
+from pathlib import Path
 from ipfx.py2to3 import to_str
 
 USER = "limsreader"
@@ -70,7 +70,7 @@ def get_input_nwb_file(specimen_id):
 
     nwb_file_name  = res['nwb_file']
 
-    return nwb_file_name
+    return fix_network_path(nwb_file_name)
 
 
 def get_input_h5_file(specimen_id):
@@ -84,7 +84,7 @@ def get_input_h5_file(specimen_id):
     and wkf.well_known_file_type_id = 306905526
     """ % specimen_id)
 
-    h5_file_name = os.path.join(h5_res[0]['storage_directory'], h5_res[0]['filename']) if len(h5_res) else None
+    h5_file_name = fix_network_path(os.path.join(h5_res[0]['storage_directory'], h5_res[0]['filename'])) if len(h5_res) else None
 
     return h5_file_name
 
@@ -126,12 +126,7 @@ def get_specimen_info_from_lims_by_id(specimen_id):
                   SELECT s.name, s.ephys_roi_result_id, s.id
                   FROM specimens s
                   WHERE s.id = %s
-                  """ % specimen_id)
-    if len(result) == 0:
-        logging.info("No result from query to find specimen information")
-        return None, None, None
-
-    result = result[0]
+                  """ % specimen_id)[0]
 
     if result:
         return result["name"], result["ephys_roi_result_id"], result["id"]
@@ -146,17 +141,12 @@ def get_nwb_path_from_lims(ephys_roi_result):
 
     result = query("""
     SELECT f.filename, f.storage_directory FROM well_known_files f
-    WHERE f.attachable_type = 'EphysRoiResult' AND f.attachable_id = %s AND f.well_known_file_type_id = 475137571
-    """ % (ephys_roi_result,))
+    WHERE f.attachable_type = 'EphysRoiResult' AND f.attachable_id = %s AND f.well_known_file_type_id IN (475137571, 570280085)
+    """ % (ephys_roi_result,))[0]
 
-    if len(result) == 0:
-        logging.info("No result from query to find NWB file")
-        return None
-
-    result = result[0]
     if result:
         nwb_path = result["storage_directory"] + result["filename"]
-        return nwb_path
+        return fix_network_path(nwb_path)
     else:
         logging.info("Cannot find NWB file")
         return None
@@ -172,16 +162,11 @@ def get_igorh5_path_from_lims(ephys_roi_result):
     AND f.well_known_file_type_id = 306905526
     """ % ephys_roi_result
 
-    result = query(sql)
-    if len(result) == 0:
-        logging.info("No result from query to find Igor H5 file")
-        return None
-
-    result = result[0]
+    result = query(sql)[0]
 
     if result:
         h5_path = result["storage_directory"] + result["filename"]
-        return h5_path
+        return fix_network_path(h5_path)
     else:
         logging.info("Cannot find Igor H5 file")
         return None
@@ -203,46 +188,9 @@ def project_specimen_ids(project, passed_only=True):
     sp_ids = [d["id"] for d in results]
     return sp_ids
 
-
-def get_fx_output_json(specimen_id):
-    """
-    Find in LIMS the full path to the json output of the feature extraction module
-    If more than one file exists, then chose the latest version
-
-    Parameters
-    ----------
-    specimen_id
-
-    Returns
-    -------
-    file_name: string
-    """
-    NO_SPECIMEN = "No_specimen_in_LIMS"
-    NO_OUTPUT_FILE = "No_feature_extraction_output"
-    
-    sql = """
-    select err.storage_directory, err.id
-    from specimens sp
-    join ephys_roi_results err on err.id = sp.ephys_roi_result_id
-    where sp.id = %d
-    """ % specimen_id
-
-    res = query(sql)
-    if res:
-        err_dir = res[0]["storage_directory"]
-
-        file_list = glob.glob(os.path.join(err_dir, '*EPHYS_FEATURE_EXTRACTION_*_output.json'))
-        if file_list:
-            latest_file = max(file_list, key=os.path.getctime)   # get the most recent file
-            return latest_file
-        else:
-            return NO_OUTPUT_FILE
-    else:
-        return NO_SPECIMEN
-
-
 def fix_network_path(lims_path):
     # Need to have double slash for network drive
     if not lims_path.startswith('//'):
         lims_path = '/' + lims_path
     return str(Path(lims_path))
+    
