@@ -164,7 +164,7 @@ def compile_lims_results(specimen_ids):
     for cell in specimen_ids:
         path = get_fx_output_json(cell)
         if path.startswith('/'):
-            record = extract_fx_output(ju.read(path), v2=("V2" in path))
+            record = extract_fx_output(ju.read(path), v2=("V2" in path) or ("DATAFIX" in path))
             record["specimen_id"] = cell
             records.append(record)
     ephys_df = pd.DataFrame.from_records(records, index="specimen_id")
