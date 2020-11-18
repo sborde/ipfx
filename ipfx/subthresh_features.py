@@ -54,7 +54,7 @@ def voltage_deflection(t, v, i, start, end, deflect_type=None):
     if deflect_type is None:
         if i is not None:
             halfway_index = tsu.find_time_index(t, (end - start) / 2. + start)
-            if i[halfway_index] >= 0:
+            if (i[halfway_index] - i[start_index - 1]) >= 0:
                 deflect_type = "max"
             else:
                 deflect_type = "min"

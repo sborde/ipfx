@@ -1,5 +1,6 @@
 import ipfx.subthresh_features as subf
 import numpy as np
+import pytest
 
 
 def test_input_resistance():
@@ -76,3 +77,36 @@ def test_time_constant_noise_acceptance():
 
     tau = subf.time_constant(t, v, i, start=start, end=end)
     assert np.isclose(actual_tau, tau, rtol=1e-3)
+
+
+test_params = [
+    (
+        [-5, -5, -5, -2, 0, 1, 1, 1, -2 -5, -5],
+        [0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+        3,
+        8,
+        (1, 5)
+    ),
+    (
+        [-5, -5, -5, -7, -10, -12, -12, -12, -7 - 5, -5],
+        [0, 0, 0, -1, -1, -1, -1, -1, -1, 0, 0],
+        3,
+        8,
+        (-12, 5)
+    ),
+    (
+        [-70, -70, -70, -50, -20, -30, -30, -30, -50, -70, -70],
+        [-70, -70, -70, -20, -20, -20, -20, -20, -20, -70, -70],
+        3,
+        8,
+        (-20, 4)
+    ),
+]
+
+
+@pytest.mark.parametrize('v, i, start, end, deflection_result', test_params)
+def test_voltage_deflection(v, i, start, end, deflection_result):
+    t = np.arange(0, 10)
+    deflection_v, deflection_idx = subf.voltage_deflection(t, v, i, start, end)
+    assert deflection_v == deflection_result[0]
+    assert deflection_idx == deflection_result[1]
