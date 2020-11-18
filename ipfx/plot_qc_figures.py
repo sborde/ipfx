@@ -65,8 +65,8 @@ def plot_single_ap_values(data_set, sweep_numbers, lims_features, sweep_features
         else:
             rheo_sn = cell_features["long_squares"]["rheobase_sweep"]["sweep_number"]
             rheo_spike = get_spikes(sweep_features, rheo_sn)[0]
-            voltages = [ rheo_spike[f] for f in voltage_features]
-            times = [ rheo_spike[f] for f in time_features]
+            voltages = [rheo_spike[f] for f in voltage_features if not np.isnan(rheo_spike[f])]
+            times = [rheo_spike[f] for f in time_features if not np.isnan(rheo_spike[f])]
 
         plt.figure(figs[0].number)
         plt.scatter(range(len(voltages)), voltages, color='gray')
@@ -123,13 +123,13 @@ def plot_single_ap_values(data_set, sweep_numbers, lims_features, sweep_features
         if nspikes:
             if type_name != "long_square" and nspikes:
 
-                voltages = [spikes[0][f] for f in voltage_features]
-                times = [spikes[0][f] for f in time_features]
+                voltages = [spikes[0][f] for f in voltage_features if not np.isnan(spikes[0][f])]
+                times = [spikes[0][f] for f in time_features if not np.isnan(spikes[0][f])]
             else:
                 rheo_sn = cell_features["long_squares"]["rheobase_sweep"]["sweep_number"]
                 rheo_spike = get_spikes(sweep_features, rheo_sn)[0]
-                voltages = [rheo_spike[f] for f in voltage_features]
-                times = [rheo_spike[f] for f in time_features]
+                voltages = [rheo_spike[f] for f in voltage_features if not np.isnan(rheo_spike[f])]
+                times = [rheo_spike[f] for f in time_features if not np.isnan(rheo_spike[f])]
 
             plt.scatter(times, voltages, color='red', zorder=20)
 
@@ -144,7 +144,7 @@ def plot_single_ap_values(data_set, sweep_numbers, lims_features, sweep_features
 
         if type_name == "ramp":
             if nspikes:
-                plt.xlim(spikes[0]["threshold_t"] - 0.002, spikes[0]["fast_trough_t"] + 0.01)
+                plt.xlim(times[0] - 0.002, times[-2] + 0.01)
         elif type_name == "short_square":
             plt.xlim(stim_start_shifted - 0.002, stim_start_shifted + stim_dur + 0.01)
         elif type_name == "long_square":
