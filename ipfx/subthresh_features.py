@@ -156,9 +156,10 @@ def input_resistance(t_set, i_set, v_set, start, end, baseline_interval=0.1):
     v_vals = []
     i_vals = []
     for t, i, v, in zip(t_set, i_set, v_set):
-        v_peak, min_index = voltage_deflection(t, v, i, start, end, 'min')
-        v_vals.append(v_peak)
-        i_vals.append(i[min_index])
+        v_stim_avg = tsu.average_voltage(v, t, start, end)
+        i_stim_avg = tsu.average_voltage(i, t, start, end)
+        v_vals.append(v_stim_avg)
+        i_vals.append(i_stim_avg)
 
     v = np.array(v_vals)
     i = np.array(i_vals)
