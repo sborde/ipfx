@@ -115,6 +115,20 @@ class SpikeFeatureExtractor(object):
         # Spike list and thresholds have been refined - now find other features
         upstrokes = spkd.find_upstroke_indexes(v, t, thresholds, peaks, self.filter, dvdt)
         troughs = spkd.find_trough_indexes(v, t, thresholds, peaks, clipped, self.end)
+        not_nan = np.logical_not(np.logical_or(np.isnan(troughs), np.isnan(peaks)))
+        not_nan_idx = np.argwhere(not_nan)
+        valid_peak_tr_pair = not_nan_idx[peaks[not_nan_idx] < troughs[not_nan_idx]]
+
+        troughs = troughs[valid_peak_tr_pair]
+        peaks = peaks[valid_peak_tr_pair]
+        upstrokes = upstrokes[valid_peak_tr_pair]
+        clipped = clipped[valid_peak_tr_pair]
+        thresholds = thresholds[valid_peak_tr_pair]
+
+        if not thresholds.size:
+            # Save time if no spikes detected
+            return DataFrame()
+
         downstrokes = spkd.find_downstroke_indexes(v, t, peaks, troughs, clipped, dvdt=dvdt)
         trough_details, clipped = spkf.analyze_trough_details(v, t, thresholds, peaks, clipped, self.end,
                                                             dvdt=dvdt)
