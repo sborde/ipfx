@@ -49,7 +49,7 @@ def test_width_calculation(spike_test_pair):
 
     expected_widths = np.array([0.000545, 0.000585])
     assert np.allclose(
-        spkf.find_widths(v, t, spikes, peaks, troughs), 
+        spkf.find_widths(v, t, spikes, peaks, troughs),
         expected_widths
     )
 
@@ -64,3 +64,16 @@ def test_width_calculation_too_many_troughs(spike_test_pair):
 
     with pytest.raises(er.FeatureError):
         spkf.find_widths(v, t, spikes, peaks, troughs)
+
+
+def test_width_calculation_missing_troughs(spike_test_pair):
+    data = spike_test_pair
+    t = data[:, 0]
+    v = data[:, 1]
+    spikes = np.array([725, 3382])
+    peaks = np.array([812, 3478])
+    troughs = np.array([1089, np.nan])
+
+    found_width = spkf.find_widths(v, t, spikes, peaks, troughs)
+    assert np.isclose(found_width[0], 0.000545)
+    assert np.isnan(found_width[1])
