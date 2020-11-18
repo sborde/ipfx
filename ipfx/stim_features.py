@@ -9,7 +9,14 @@ def get_stim_characteristics(i, t, test_pulse=True):
 
     di = np.diff(i)
     di_idx = np.flatnonzero(di)   # != 0
-    start_idx_idx = 2 if test_pulse else 0     # skip the first up/down (test pulse) if present
+
+    if test_pulse:
+        if len(di_idx) % 2 == 1:  # skip the truncated test pulse
+            start_idx_idx = 1
+        else:
+            start_idx_idx = 2
+    else:
+        start_idx_idx = 0
 
     if len(di_idx[start_idx_idx:]) == 0:    # if no stimulus is found
         return None, None, 0.0, None, None
