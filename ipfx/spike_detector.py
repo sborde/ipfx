@@ -274,6 +274,10 @@ def check_thresholds_and_peaks(v, t, spike_indexes, peak_indexes, upstroke_index
 
                 # Find the peak in a window twice the size of our allowed window
                 spike = spike_indexes[i]
+                if t[spike] + 2 * max_interval > t[-1]:
+                    drop_spikes.append(i)
+                    continue
+
                 t_0 = tsu.find_time_index(t, t[spike] + 2 * max_interval)
                 new_peak = np.argmax(v[spike:t_0]) + spike
 

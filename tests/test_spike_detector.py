@@ -174,6 +174,19 @@ def test_check_spikes_and_peaks():
     assert np.allclose(new_peaks, peaks[1:])
 
 
+def test_check_spikes_and_peaks_close_to_end():
+    t = np.arange(0, 2000) * 5e-6
+    v = np.zeros_like(t)
+    spikes = np.array([500])
+    peaks = np.array([1510])
+    upstrokes = np.array([700])
+    dvdt = np.ones_like(t)
+
+    new_spikes, new_peaks, new_upstrokes, clipped = spkd.check_thresholds_and_peaks(v, t, spikes, peaks, upstrokes, dvdt=dvdt)
+    assert np.allclose(new_spikes, spikes[:-1])
+    assert np.allclose(new_peaks, peaks[1:])
+
+
 def test_thresholds(spike_test_pair):
     data = spike_test_pair
     t = data[:, 0]
