@@ -72,6 +72,12 @@ def test_get_experiment_epoch(i, sampling_rate, expt_epoch):
                                  None
                              ),
 
+                             #   truncated test pulse
+                             (
+                                 [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                 4,
+                                 None
+                             ),
                          ]
                          )
 def test_get_test_epoch(i, sampling_rate, test_epoch):

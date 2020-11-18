@@ -149,7 +149,8 @@ def get_test_epoch(i,hz):
         return None
 
     if len(di_idx) == 1:
-        raise Exception("Cannot detect and end to the test pulse")
+        print("Cannot detect and end to the test pulse")
+        return None
 
     start_pulse_idx = di_idx[0] + 1  # shift by one to compensate for diff()
     end_pulse_idx = di_idx[1]
