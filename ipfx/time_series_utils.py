@@ -37,22 +37,25 @@ def calculate_dvdt(v, t, filter=None):
     dvdt : numpy array of time-derivative of voltage (V/s = mV/ms)
     """
 
-    if has_fixed_dt(t) and filter:
-        delta_t = t[1] - t[0]
-        sample_freq = 1. / delta_t
-        filt_coeff = (filter * 1e3) / (sample_freq / 2.) # filter kHz -> Hz, then get fraction of Nyquist frequency
-        if filt_coeff < 0 or filt_coeff >= 1:
-            raise ValueError("bessel coeff ({:f}) is outside of valid range [0,1); cannot filter sampling frequency {:.1f} kHz with cutoff frequency {:.1f} kHz.".format(filt_coeff, sample_freq / 1e3, filter))
-        b, a = signal.bessel(4, filt_coeff, "low")
-        v_filt = signal.filtfilt(b, a, v, axis=0)
-        dv = np.diff(v_filt)
-    else:
+    try:
+        if has_fixed_dt(t) and filter:
+            delta_t = t[1] - t[0]
+            sample_freq = 1. / delta_t
+            filt_coeff = (filter * 1e3) / (sample_freq / 2.) # filter kHz -> Hz, then get fraction of Nyquist frequency
+            if filt_coeff < 0 or filt_coeff >= 1:
+                raise ValueError("bessel coeff ({:f}) is outside of valid range [0,1); cannot filter sampling frequency {:.1f} kHz with cutoff frequency {:.1f} kHz.".format(filt_coeff, sample_freq / 1e3, filter))
+            b, a = signal.bessel(4, filt_coeff, "low")
+            v_filt = signal.filtfilt(b, a, v, axis=0)
+            dv = np.diff(v_filt)
+        else:
+            dv = np.diff(v)
+    except ValueError:
         dv = np.diff(v)
 
     dt = np.diff(t)
     dvdt = 1e-3 * dv / dt  # in V/s = mV/ms
 
-    # some data sources, such as neuron, occasionally report 
+    # some data sources, such as neuron, occasionally report
     # duplicate timestamps, so we require that dt is not 0
     return dvdt[np.fabs(dt) > sys.float_info.epsilon]
 

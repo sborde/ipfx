@@ -19,6 +19,13 @@ def test_dvdt_no_filter():
     assert np.allclose(tsu.calculate_dvdt(v, t), np.diff(v) / np.diff(t))
 
 
+def test_dvdt_with_filter_small_samplingrate():
+    t = np.array([0, 1, 2, 3]) / 10000.0
+    v = np.array([1, 1, 1, 1])
+
+    assert np.allclose(tsu.calculate_dvdt(v, t, 10), np.diff(v) / np.diff(t))
+
+
 def test_fixed_dt():
     t = [0, 1, 2, 3]
     assert tsu.has_fixed_dt(t)
@@ -26,6 +33,7 @@ def test_fixed_dt():
     # Change the first time point to make time steps inconsistent
     t[0] -= 3.
     assert not tsu.has_fixed_dt(t)
+
 
 def test_flatnotnan():
     a = [1, 10, 12, 17, 13, 4, 8, np.nan, np.nan]
